@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.navigator.viewer">
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.console.consoleFactories">
+      <consoleFactory
+            class="io.jenkins.x.eclipse.plugin.JenkinsConsole"
+            label="Jenkins Console">
+      </consoleFactory>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="io.jenkins.x.eclipse.plugin.Startup">
+      </startup>
+   </extension>
+
+</plugin>
