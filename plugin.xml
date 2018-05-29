@@ -19,5 +19,38 @@
             class="io.jenkins.x.eclipse.plugin.Startup">
       </startup>
    </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="jx-eclipse-plugin"
+            name="Sample Category">
+      </category>
+      <view
+            category="jx-eclipse-plugin"
+            class="io.jenkins.x.eclipse.plugin.view.JenkinsView"
+            icon="icons/sample.png"
+            id="io.jenkins.x.eclipse.plugin.view.JenkinsView"
+            inject="true"
+            name="Jenkins View">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               id="io.jenkins.x.eclipse.plugin.view.JenkinsView"
+               ratio="0.5"
+               relationship="right"
+               relative="org.eclipse.ui.views.ProblemView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
 
 </plugin>
