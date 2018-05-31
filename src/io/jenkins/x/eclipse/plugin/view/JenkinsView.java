@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.part.*;
 
+import io.fabric8.zjsonpatch.internal.guava.Strings;
 import io.jenkins.x.client.PipelineClient;
 import io.jenkins.x.client.kube.PipelineActivity;
 import io.jenkins.x.client.kube.Statuses;
@@ -26,6 +27,7 @@ import io.jenkins.x.client.tree.OwnerNode;
 import io.jenkins.x.client.tree.PipelineTreeModel;
 import io.jenkins.x.client.tree.RepoNode;
 import io.jenkins.x.client.tree.TreeItem;
+import io.jenkins.x.eclipse.plugin.util.ActionUtils;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
@@ -57,7 +59,7 @@ public class JenkinsView extends ViewPart {
 	
 	private TreeViewer viewer;
 	private BeAction startPipelineAction;
-	private BeAction openRepoAction;
+	private BeAction openAction;
 	private BeAction reloadAction;
 
 	private PipelineTreeModel model = PipelineTreeModel.newInstance();
@@ -158,10 +160,52 @@ public class JenkinsView extends ViewPart {
 		getSite().setSelectionProvider(viewer);
 		makeActions();
 		
+		hookContextMenu();
+		
 		IToolBarManager tbm= getViewSite().getActionBars().getToolBarManager();
 		configureToolBar(tbm);
 	}
 	
+	private void hookContextMenu() {
+		MenuManager menuMgr = new MenuManager("#PopupMenu");
+		menuMgr.setRemoveAllWhenShown(true);
+		menuMgr.addMenuListener(new IMenuListener() {
+			public void menuAboutToShow(IMenuManager manager) {
+				ISelection obj = viewer.getSelection();
+				IActionBars actionBars = getViewSite().getActionBars();
+				IToolBarManager tbm = actionBars.getToolBarManager();
+				
+				ActionUtils.removeOpenBrowseActions(tbm);
+				
+				Object ele = null;
+				if(obj instanceof TreeSelection) {
+					ele = ((TreeSelection) obj).getFirstElement();
+				}
+				
+				if(ele == null || !(ele instanceof TreeItem)) {
+					actionBars.updateActionBars();
+					return;
+				}
+				
+				if(ele instanceof BuildNode) {
+					BuildNode buildNode = (BuildNode) ele;
+					
+					String buildLogsUrl = buildNode.getBuildLogsUrl();
+					String buildUrl = buildNode.getBuildUrl();
+					String gitUrl = buildNode.getGitUrl();
+					
+					ActionUtils.addOpenBrowseAction(tbm, buildLogsUrl, "Logs");
+					ActionUtils.addOpenBrowseAction(tbm, buildUrl, "Build");
+					ActionUtils.addOpenBrowseAction(tbm, gitUrl, "Git Repo");
+					actionBars.updateActionBars();
+				}
+			}
+		});
+		Menu menu = menuMgr.createContextMenu(viewer.getControl());
+		viewer.getControl().setMenu(menu);
+		getSite().registerContextMenu(menuMgr, viewer);
+	}
+
 	protected void configureToolBar(IToolBarManager mgr) {
 		mgr.add(this.reloadAction);
 	}
@@ -175,26 +219,6 @@ public class JenkinsView extends ViewPart {
 		startPipelineAction.setToolTipText("Start Pipeline");
 		startPipelineAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-		
-		openRepoAction = new BeAction() {
-			public void run() {
-				if(getUrl() == null) {
-					return;
-				}
-				
-				try {
-					URI uri = new URI(this.getUrl());
-					
-					Desktop.getDesktop().browse(uri);
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		openRepoAction.setText("Open Repo");
-		openRepoAction.setToolTipText("Open Repo");
 		
 		reloadAction = new BeAction() {
 			public void run() {
