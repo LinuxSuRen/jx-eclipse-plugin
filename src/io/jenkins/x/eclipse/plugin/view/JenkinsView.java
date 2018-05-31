@@ -9,6 +9,8 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -36,6 +38,7 @@ public class JenkinsView extends ViewPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "io.jenkins.x.eclipse.plugin.view.JenkinsView";
+	private static final Logger logger = Logger.getLogger(JenkinsView.class.getName());
 
 	@Inject IWorkbench workbench;
 	
@@ -67,10 +70,9 @@ public class JenkinsView extends ViewPart {
 
 			@Override
 			public void event(TreeItem item, String event) {
+				viewer.getTree().getDisplay().update();
 				viewer.getTree().update();
 				viewer.getTree().redraw();
-				
-				Logger logger = Logger.getLogger(JenkinsView.class.getName());
 				
 				logger.info("Tree reload " + item.getLabel());
 			}
@@ -115,6 +117,40 @@ public class JenkinsView extends ViewPart {
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
 		viewer.getControl().setMenu(menu);
 		getSite().registerContextMenu(menuMgr, viewer);
+		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				ISelection obj = viewer.getSelection();
+				IActionBars actionBars = getViewSite().getActionBars();
+				IToolBarManager tbm = actionBars.getToolBarManager();
+				
+				ActionUtils.removeOpenBrowseActions(tbm);
+				
+				Object ele = null;
+				if(obj instanceof TreeSelection) {
+					ele = ((TreeSelection) obj).getFirstElement();
+				}
+				
+				if(ele == null || !(ele instanceof TreeItem)) {
+					actionBars.updateActionBars();
+					return;
+				}
+				
+				if(ele instanceof BuildNode) {
+					BuildNode buildNode = (BuildNode) ele;
+					
+					String buildLogsUrl = buildNode.getBuildLogsUrl();
+					String buildUrl = buildNode.getBuildUrl();
+					String gitUrl = buildNode.getGitUrl();
+					
+					ActionUtils.addOpenBrowseAction(tbm, buildLogsUrl, "Logs");
+					ActionUtils.addOpenBrowseAction(tbm, buildUrl, "Build");
+					ActionUtils.addOpenBrowseAction(tbm, gitUrl, "Git Repo");
+					actionBars.updateActionBars();
+				}
+			}
+		});
 	}
 
 	protected void configureToolBar(IToolBarManager mgr) {
@@ -133,6 +169,8 @@ public class JenkinsView extends ViewPart {
 		
 		reloadAction = new BeAction() {
 			public void run() {
+				viewer.getTree().getParent().setRedraw(true);
+				viewer.getTree().getParent().update();
 				viewer.getTree().redraw();
 				viewer.refresh();
 			}
