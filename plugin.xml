@@ -23,8 +23,7 @@
          point="org.eclipse.ui.views">
       <category
             id="jx-eclipse-plugin"
-            name="Jenkins-X"
-            parentCategory="General">
+            name="Jenkins-X">
       </category>
       <view
             category="jx-eclipse-plugin"
@@ -35,6 +34,8 @@
             name="Jenkins-X">
       </view>
    </extension>
+   
+   <!--
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension
@@ -53,6 +54,7 @@
             file="contexts.xml">
       </contexts>
    </extension>
+   
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
@@ -93,6 +95,7 @@
          </toolbar>
       </menuContribution>
    </extension>
+   
    <extension
          point="org.eclipse.ui.commands">
       <category
@@ -121,5 +124,6 @@
             sequence="M1+6">
       </key>
    </extension>
+   -->
 
 </plugin>

@@ -28,3 +28,4 @@ Bundle-ClassPath: .,
  lib/snakeyaml-1.15.jar,
  lib/validation-api-1.1.0.Final.jar,
  lib/zjsonpatch-0.3.0.jar
+Bundle-Activator: io.jenkins.x.eclipse.plugin.Activator

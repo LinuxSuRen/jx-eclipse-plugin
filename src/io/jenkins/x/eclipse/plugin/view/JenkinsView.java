@@ -1,5 +1,7 @@
 package io.jenkins.x.eclipse.plugin.view;
 
+import java.util.logging.Logger;
+
 import javax.inject.Inject;
 
 import org.eclipse.jface.action.IMenuListener;
@@ -67,6 +69,10 @@ public class JenkinsView extends ViewPart {
 			public void event(TreeItem item, String event) {
 				viewer.getTree().update();
 				viewer.getTree().redraw();
+				
+				Logger logger = Logger.getLogger(JenkinsView.class.getName());
+				
+				logger.info("Tree reload " + item.getLabel());
 			}
 		});
 	}
