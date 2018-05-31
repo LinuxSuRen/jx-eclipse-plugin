@@ -7,4 +7,4 @@
 
 ### Build
 
-Before you get to running this plugin, you need run `mvn dependency:copy-dependencies -DoutputDirectory=lib` first.
+Before you get to running this plugin, you need run `make` first.
