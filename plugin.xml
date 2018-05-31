@@ -52,5 +52,73 @@
             file="contexts.xml">
       </contexts>
    </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="toolbar:io.jenkins.x.eclipse.plugin.view.JenkinsView?after=additions">
+         <toolbar
+               id="jx-eclipse-plugin.view.toolbars.sampleToolbar">
+            <command
+                  commandId="jx-eclipse-plugin.commands.sampleCommand"
+                  icon="icons/sample.png"
+                  id="jx-eclipse-plugin.sdf.toolbars.sampleCommand"
+                  tooltip="Say hello world">
+            </command>
+         </toolbar>
+      </menuContribution>
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               id="jx-eclipse-plugin.menus.sampleMenu"
+               label="Sample Menu"
+               mnemonic="M">
+            <command
+                  commandId="jx-eclipse-plugin.commands.sampleCommand"
+                  id="jx-eclipse-plugin.menus.sampleCommand"
+                  mnemonic="S">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="jx-eclipse-plugin.toolbars.sampleToolbar">
+            <command
+                  commandId="jx-eclipse-plugin.commands.sampleCommand"
+                  icon="icons/sample.png"
+                  id="jx-eclipse-plugin.toolbars.sampleCommand"
+                  tooltip="Say hello world">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="jx-eclipse-plugin.commands.category"
+            name="Sample Category">
+      </category>
+      <command
+            categoryId="jx-eclipse-plugin.commands.category"
+            id="jx-eclipse-plugin.commands.sampleCommand"
+            name="Sample Command">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="jxeclipseplugin.handlers.SampleHandler"
+            commandId="jx-eclipse-plugin.commands.sampleCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="jx-eclipse-plugin.commands.sampleCommand"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+6">
+      </key>
+   </extension>
 
 </plugin>

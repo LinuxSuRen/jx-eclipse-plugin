@@ -1,46 +1,49 @@
 package io.jenkins.x.eclipse.plugin.view;
 
+import java.awt.Desktop;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.part.*;
 
 import io.jenkins.x.client.PipelineClient;
 import io.jenkins.x.client.kube.PipelineActivity;
+import io.jenkins.x.client.kube.Statuses;
+import io.jenkins.x.client.tree.BaseNode;
+import io.jenkins.x.client.tree.BranchNode;
+import io.jenkins.x.client.tree.BuildNode;
 import io.jenkins.x.client.tree.OwnerNode;
 import io.jenkins.x.client.tree.PipelineTreeModel;
+import io.jenkins.x.client.tree.RepoNode;
 import io.jenkins.x.client.tree.TreeItem;
 
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.jface.action.*;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.ui.*;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.SWT;
 import org.eclipse.core.runtime.IAdaptable;
+
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
 
-
 /**
- * This sample class demonstrates how to plug-in a new
- * workbench view. The view shows data obtained from the
- * model. The sample creates a dummy model on the fly,
- * but a real implementation would connect to the model
- * available either in this or another plug-in (e.g. the workspace).
- * The view is connected to the model using a content provider.
- * <p>
- * The view uses a label provider to define how model
- * objects should be presented in the view. Each
- * view can present the same model objects using
- * different labels and icons, if needed. Alternatively,
- * a single label provider can be shared between views
- * in order to ensure that objects of the same type are
- * presented in the same way everywhere.
- * <p>
+ * 
+ * @author suren
  */
-
 public class JenkinsView extends ViewPart {
 
 	/**
@@ -51,58 +54,41 @@ public class JenkinsView extends ViewPart {
 	@Inject IWorkbench workbench;
 	
 	private TreeViewer viewer;
-	private DrillDownAdapter drillDownAdapter;
-	private Action startPipelineAction;
+	private BeAction startPipelineAction;
+	private BeAction openRepoAction;
+	private BeAction reloadAction;
 
 	private PipelineTreeModel model = PipelineTreeModel.newInstance();
-	 
-	class TreeObject extends io.jenkins.x.client.tree.TreeNode implements IAdaptable {
-		public TreeObject(TreeItem parent, String label) {
-			super(parent, label);
-		}
-
-		@Override
-		public <T> T getAdapter(Class<T> adapter) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-	}
 
 	class ViewContentProvider implements ITreeContentProvider {
-		private TreeItem invisibleRoot;
 
+		@Override
 		public Object[] getElements(Object parent) {
-//			if (parent.equals(getViewSite())) {
-//				if (invisibleRoot==null) initialize();
-//				return getChildren(invisibleRoot);
-//			}
-//			return getChildren(parent);
-			
 			List<TreeItem> items = model.getChildrenItems();
 			if(items == null || items.size() == 0) {
 				return new Object[] {};
 			}
 			
-			for(TreeItem item : items) {
-				if(item instanceof OwnerNode) {
-					OwnerNode ownerNode = (OwnerNode) item;
-				}
-			}
-			
 			return items.toArray();
 		}
+		
+		@Override
 		public Object getParent(Object child) {
-			if (child instanceof TreeObject) {
-				return ((TreeObject)child).getParent();
+			if (child instanceof TreeItem) {
+				return ((TreeItem)child).getParent();
 			}
 			return null;
 		}
+		
+		@Override
 		public Object [] getChildren(Object parent) {
 			if (parent instanceof TreeItem) {
 				return ((TreeItem)parent).getChildrenItems().toArray();
 			}
 			return new Object[0];
 		}
+
+		@Override
 		public boolean hasChildren(Object parent) {
 			if (parent instanceof TreeItem)
 				return ((TreeItem)parent).getChildrenItems().size() > 0;
@@ -118,69 +104,84 @@ public class JenkinsView extends ViewPart {
 			}
 			return obj.toString();
 		}
+		
 		public Image getImage(Object obj) {
-			String imageKey = ISharedImages.IMG_OBJ_ELEMENT;
-			if (obj instanceof TreeItem)
-			   imageKey = ISharedImages.IMG_OBJ_FOLDER;
-			return workbench.getSharedImages().getImage(imageKey);
+			String image = null;
+			if(obj instanceof BaseNode) {
+				image = ((TreeItem) obj).getIconPath();
+			}
+			
+			if(image != null && !"".equals(image)) {
+				ClassLoader loader = getClass().getClassLoader();
+				InputStream imageInput = loader.getResourceAsStream(image);
+				if(imageInput != null) {
+					return new Image(Display.getCurrent(), imageInput);
+				}
+			}
+			
+			return null;
 		}
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		drillDownAdapter = new DrillDownAdapter(viewer);
 		
 		viewer.setContentProvider(new ViewContentProvider());
 		viewer.setInput(getViewSite());
 		viewer.setLabelProvider(new ViewLabelProvider());
-
+		
 		// Create the help context id for the viewer's control
 		workbench.getHelpSystem().setHelp(viewer.getControl(), "jx-eclipse-plugin.viewer");
 		getSite().setSelectionProvider(viewer);
 		makeActions();
-		hookContextMenu();
-	}
-
-	private void hookContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu");
-		menuMgr.setRemoveAllWhenShown(true);
-		menuMgr.addMenuListener(new IMenuListener() {
-			public void menuAboutToShow(IMenuManager manager) {
-				JenkinsView.this.fillContextMenu(manager);
-			}
-		});
-		Menu menu = menuMgr.createContextMenu(viewer.getControl());
-		viewer.getControl().setMenu(menu);
-		getSite().registerContextMenu(menuMgr, viewer);
-	}
-
-	private void fillContextMenu(IMenuManager manager) {
-		manager.add(startPipelineAction);
 		
-		drillDownAdapter.addNavigationActions(manager);
-		// Other plug-ins can contribute there actions here
-		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+		IToolBarManager tbm= getViewSite().getActionBars().getToolBarManager();
+		configureToolBar(tbm);
+	}
+	
+	protected void configureToolBar(IToolBarManager mgr) {
+		mgr.add(this.reloadAction);
 	}
 
 	private void makeActions() {
-		this.startPipelineAction = new Action() {
+		this.startPipelineAction = new BeAction() {
 			public void run() {
-				showMessage("Action 1 executed");
 			}
 		};
 		startPipelineAction.setText("Start Pipeline");
 		startPipelineAction.setToolTipText("Start Pipeline");
 		startPipelineAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
-	}
-
-	private void showMessage(String message) {
-		System.out.println(viewer.getSelection());
-		MessageDialog.openInformation(
-			viewer.getControl().getShell(),
-			"Jenkins View",
-			message);
+		
+		openRepoAction = new BeAction() {
+			public void run() {
+				if(getUrl() == null) {
+					return;
+				}
+				
+				try {
+					URI uri = new URI(this.getUrl());
+					
+					Desktop.getDesktop().browse(uri);
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		openRepoAction.setText("Open Repo");
+		openRepoAction.setToolTipText("Open Repo");
+		
+		reloadAction = new BeAction() {
+			public void run() {
+				viewer.getTree().redraw();
+				viewer.refresh();
+			}
+		};
+		reloadAction.setText("Reload");
+		reloadAction.setToolTipText("Reload");
 	}
 
 	@Override
