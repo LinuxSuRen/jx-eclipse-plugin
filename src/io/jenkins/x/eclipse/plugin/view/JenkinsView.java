@@ -1,48 +1,28 @@
 package io.jenkins.x.eclipse.plugin.view;
 
-import java.awt.Desktop;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.*;
-
-import io.fabric8.zjsonpatch.internal.guava.Strings;
-import io.jenkins.x.client.PipelineClient;
-import io.jenkins.x.client.kube.PipelineActivity;
-import io.jenkins.x.client.kube.Statuses;
-import io.jenkins.x.client.tree.BaseNode;
-import io.jenkins.x.client.tree.BranchNode;
-import io.jenkins.x.client.tree.BuildNode;
-import io.jenkins.x.client.tree.OwnerNode;
-import io.jenkins.x.client.tree.PipelineTreeModel;
-import io.jenkins.x.client.tree.RepoNode;
-import io.jenkins.x.client.tree.TreeItem;
-import io.jenkins.x.eclipse.plugin.util.ActionUtils;
-
-import org.eclipse.jface.viewers.*;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.jface.action.*;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.layout.GridDataFactory;
-import org.eclipse.ui.*;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.SWT;
-import org.eclipse.core.runtime.IAdaptable;
-
-import javax.imageio.ImageIO;
 import javax.inject.Inject;
+
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.ViewPart;
+
+import io.jenkins.x.client.tree.BuildNode;
+import io.jenkins.x.client.tree.PipelineTreeModel;
+import io.jenkins.x.client.tree.TreeItem;
+import io.jenkins.x.client.tree.TreeModelListenerAdapter;
+import io.jenkins.x.eclipse.plugin.util.ActionUtils;
 
 /**
  * 
@@ -59,99 +39,15 @@ public class JenkinsView extends ViewPart {
 	
 	private TreeViewer viewer;
 	private BeAction startPipelineAction;
-	private BeAction openAction;
 	private BeAction reloadAction;
 
 	private PipelineTreeModel model = PipelineTreeModel.newInstance();
-
-	class ViewContentProvider implements ITreeContentProvider {
-
-		@Override
-		public Object[] getElements(Object parent) {
-			List<TreeItem> items = model.getChildrenItems();
-			if(items == null || items.size() == 0) {
-				return new Object[] {};
-			}
-			
-			return items.toArray();
-		}
-		
-		@Override
-		public Object getParent(Object child) {
-			if (child instanceof TreeItem) {
-				return ((TreeItem)child).getParent();
-			}
-			return null;
-		}
-		
-		@Override
-		public Object [] getChildren(Object parent) {
-			if (parent instanceof TreeItem) {
-				return ((TreeItem)parent).getChildrenItems().toArray();
-			}
-			return new Object[0];
-		}
-
-		@Override
-		public boolean hasChildren(Object parent) {
-			if (parent instanceof TreeItem)
-				return ((TreeItem)parent).getChildrenItems().size() > 0;
-			return false;
-		}
-	}
-
-	class ViewLabelProvider extends StyledCellLabelProvider {
-		private Map<String, Image> imageCache = new HashMap<String, Image>();
-
-		@Override
-		public void update(ViewerCell cell) {
-			Object obj = cell.getElement();
-			StyledString styledString = new StyledString(getText(obj));
-
-			cell.setText(styledString.toString());
-			cell.setStyleRanges(styledString.getStyleRanges());
-			cell.setImage(getImage(obj));
-			
-			super.update(cell);
-		}
-
-		private String getText(Object obj) {
-			if(obj instanceof TreeItem) {
-				return ((TreeItem) obj).getLabel();
-			}
-			return obj.toString();
-		}
-		
-		private Image getImage(Object obj) {
-			String imagePath = null;
-			if(obj instanceof BaseNode) {
-				imagePath = ((TreeItem) obj).getIconPath();
-			}
-			
-			Image image = null;
-			if(imagePath != null && !"".equals(imagePath)) {
-				image = imageCache.get(imagePath);
-				
-				if(image == null) {
-					ClassLoader loader = getClass().getClassLoader();
-					InputStream imageInput = loader.getResourceAsStream(imagePath);
-					if(imageInput != null) {
-						image = new Image(Display.getCurrent(), imageInput);
-						image = new Image(Display.getCurrent(), image.getImageData().scaledTo(20, 20));
-						imageCache.put(imagePath, image);
-					}
-				}
-			}
-			
-			return image;
-		}
-	}
 
 	@Override
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		
-		viewer.setContentProvider(new ViewContentProvider());
+		viewer.setContentProvider(new ViewContentProvider(this.model));
 		viewer.setInput(getViewSite());
 		viewer.setLabelProvider(new ViewLabelProvider());
 		
@@ -164,6 +60,15 @@ public class JenkinsView extends ViewPart {
 		
 		IToolBarManager tbm= getViewSite().getActionBars().getToolBarManager();
 		configureToolBar(tbm);
+		
+		model.addListener(new TreeModelListenerAdapter() {
+
+			@Override
+			public void event(TreeItem item, String event) {
+				viewer.getTree().update();
+				viewer.getTree().redraw();
+			}
+		});
 	}
 	
 	private void hookContextMenu() {
