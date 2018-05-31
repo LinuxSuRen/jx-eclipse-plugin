@@ -23,15 +23,16 @@
          point="org.eclipse.ui.views">
       <category
             id="jx-eclipse-plugin"
-            name="Sample Category">
+            name="Jenkins-X"
+            parentCategory="General">
       </category>
       <view
             category="jx-eclipse-plugin"
             class="io.jenkins.x.eclipse.plugin.view.JenkinsView"
-            icon="icons/sample.png"
+            icon="icons/jx-logo-16.png"
             id="io.jenkins.x.eclipse.plugin.view.JenkinsView"
             inject="true"
-            name="Jenkins View">
+            name="Jenkins-X">
       </view>
    </extension>
    <extension
