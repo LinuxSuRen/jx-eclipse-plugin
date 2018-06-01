@@ -30,3 +30,4 @@ Bundle-ClassPath: .,
  lib/zjsonpatch-0.3.0.jar
 Bundle-Activator: io.jenkins.x.eclipse.plugin.Activator
 Bundle-ActivationPolicy: lazy
+Import-Package: javax.xml.bind; version="0.0.0"

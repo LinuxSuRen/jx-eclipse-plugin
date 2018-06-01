@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.ISharedImages;
@@ -77,7 +78,13 @@ public class JenkinsView extends ViewPart {
 
 			@Override
 			public void event(TreeItem item, String event) {
-				update();
+				Display.getDefault().asyncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						update();
+					}
+				});
 				
 				Logger.info("Tree reload " + item.getLabel());
 			}
