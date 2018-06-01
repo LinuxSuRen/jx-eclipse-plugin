@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.inject.Inject;
 
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -14,6 +15,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
@@ -109,33 +111,8 @@ public class JenkinsView extends ViewPart {
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
 				ISelection obj = viewer.getSelection();
-				IActionBars actionBars = getViewSite().getActionBars();
-				IToolBarManager tbm = actionBars.getToolBarManager();
-				
-				ActionUtils.removeOpenBrowseActions(tbm);
-				
-				Object ele = null;
-				if(obj instanceof TreeSelection) {
-					ele = ((TreeSelection) obj).getFirstElement();
-				}
-				
-				if(ele == null || !(ele instanceof TreeItem)) {
-					actionBars.updateActionBars();
-					return;
-				}
-				
-				if(ele instanceof BuildNode) {
-					BuildNode buildNode = (BuildNode) ele;
-					
-					String buildLogsUrl = buildNode.getBuildLogsUrl();
-					String buildUrl = buildNode.getBuildUrl();
-					String gitUrl = buildNode.getGitUrl();
-					
-					ActionUtils.addOpenBrowseAction(tbm, buildLogsUrl, "Logs");
-					ActionUtils.addOpenBrowseAction(tbm, buildUrl, "Build");
-					ActionUtils.addOpenBrowseAction(tbm, gitUrl, "Git Repo");
-					actionBars.updateActionBars();
-				}
+
+				putAction(obj, manager);
 			}
 		});
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
@@ -149,32 +126,38 @@ public class JenkinsView extends ViewPart {
 				IActionBars actionBars = getViewSite().getActionBars();
 				IToolBarManager tbm = actionBars.getToolBarManager();
 				
-				ActionUtils.removeOpenBrowseActions(tbm);
-				
-				Object ele = null;
-				if(obj instanceof TreeSelection) {
-					ele = ((TreeSelection) obj).getFirstElement();
-				}
-				
-				if(ele == null || !(ele instanceof TreeItem)) {
-					actionBars.updateActionBars();
-					return;
-				}
-				
-				if(ele instanceof BuildNode) {
-					BuildNode buildNode = (BuildNode) ele;
-					
-					String buildLogsUrl = buildNode.getBuildLogsUrl();
-					String buildUrl = buildNode.getBuildUrl();
-					String gitUrl = buildNode.getGitUrl();
-					
-					ActionUtils.addOpenBrowseAction(tbm, buildLogsUrl, "Logs");
-					ActionUtils.addOpenBrowseAction(tbm, buildUrl, "Build");
-					ActionUtils.addOpenBrowseAction(tbm, gitUrl, "Git Repo");
+				Rectangle bounds = viewer.getControl().getBounds();
+				if(bounds.width >= 400) {
+					putAction(obj, tbm);
 					actionBars.updateActionBars();
 				}
 			}
 		});
+	}
+	
+	private void putAction(ISelection obj, IContributionManager manager) {
+		ActionUtils.removeOpenBrowseActions(manager);
+		
+		Object ele = null;
+		if(obj instanceof TreeSelection) {
+			ele = ((TreeSelection) obj).getFirstElement();
+		}
+		
+		if(ele == null || !(ele instanceof TreeItem)) {
+			return;
+		}
+		
+		if(ele instanceof BuildNode) {
+			BuildNode buildNode = (BuildNode) ele;
+			
+			String buildLogsUrl = buildNode.getBuildLogsUrl();
+			String buildUrl = buildNode.getBuildUrl();
+			String gitUrl = buildNode.getGitUrl();
+			
+			ActionUtils.addOpenBrowseAction(manager, buildLogsUrl, "Logs");
+			ActionUtils.addOpenBrowseAction(manager, buildUrl, "Build");
+			ActionUtils.addOpenBrowseAction(manager, gitUrl, "Git Repo");
+		}
 	}
 
 	protected void configureToolBar(IToolBarManager mgr) {
