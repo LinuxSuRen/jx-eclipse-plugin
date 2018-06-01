@@ -9,6 +9,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 
 import io.jenkins.x.client.tree.PipelineTreeModel;
 import io.jenkins.x.client.tree.TreeItem;
+import io.jenkins.x.eclipse.plugin.Logger;
 
 /**
  * @author suren
@@ -24,8 +25,10 @@ class ViewContentProvider implements ITreeContentProvider {
 	public Object[] getElements(Object parent) {
 		List<TreeItem> items = treeModel.getChildrenItems();
 		if(items == null || items.size() == 0) {
-			return new Object[] {};
+			return new Object[]{};
 		}
+		
+		Logger.info("Find item number: " + items.size());
 		
 		return items.toArray();
 	}
@@ -35,21 +38,25 @@ class ViewContentProvider implements ITreeContentProvider {
 		if (child instanceof TreeItem) {
 			return ((TreeItem)child).getParent();
 		}
+		
 		return null;
 	}
 	
 	@Override
-	public Object [] getChildren(Object parent) {
+	public Object[] getChildren(Object parent) {
 		if (parent instanceof TreeItem) {
 			return ((TreeItem)parent).getChildrenItems().toArray();
 		}
+		
 		return new Object[0];
 	}
 
 	@Override
 	public boolean hasChildren(Object parent) {
-		if (parent instanceof TreeItem)
+		if (parent instanceof TreeItem) {
 			return ((TreeItem)parent).getChildrenItems().size() > 0;
+		}
+		
 		return false;
 	}
 }

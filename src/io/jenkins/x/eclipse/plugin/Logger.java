@@ -15,7 +15,7 @@ public class Logger {
 	private static final String ID = Activator.PLUGIN_ID;
 	
 	public static void info(String message) {
-		info(message);
+		info(message, null);
 	}
 	
 	public static void info(String message, Throwable e) {
@@ -23,7 +23,7 @@ public class Logger {
 	}
 	
 	public static void warning(String message) {
-		warning( message);
+		warning(message, null);
 	}
 	
 	public static void warning(String message, Throwable e) {
@@ -31,7 +31,7 @@ public class Logger {
 	}
 	
 	public static void error(String message) {
-		error(message);
+		error(message, null);
 	}
 	
 	public static void error(String message, Throwable e) {
@@ -39,7 +39,7 @@ public class Logger {
 	}
 	
 	public static void ok(String message) {
-		ok(message);
+		ok(message, null);
 	}
 	
 	public static void ok(String message, Throwable e) {

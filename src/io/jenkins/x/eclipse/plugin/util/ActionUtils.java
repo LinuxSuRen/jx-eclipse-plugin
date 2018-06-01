@@ -7,7 +7,8 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IContributionManager;
-import io.fabric8.zjsonpatch.internal.guava.Strings;
+
+import io.jenkins.x.client.util.Strings;
 import io.jenkins.x.eclipse.plugin.view.OpenBrowseAction;
 
 /**
@@ -22,7 +23,7 @@ public abstract class ActionUtils {
 	 * @param target target action text
 	 */
 	public static void addOpenBrowseAction(IContributionManager manager, String url, String target) {
-		if(!Strings.isNullOrEmpty(target)) {
+		if(!Strings.notEmpty(target)) {
 			manager.add(new OpenBrowseAction(target, url));
 			manager.update(true);
 		}

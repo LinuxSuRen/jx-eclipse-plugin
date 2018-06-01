@@ -1,6 +1,6 @@
 package io.jenkins.x.eclipse.plugin.view;
 
-import java.util.logging.Logger;
+import java.io.IOException;
 
 import javax.inject.Inject;
 
@@ -26,6 +26,7 @@ import io.jenkins.x.client.tree.BuildNode;
 import io.jenkins.x.client.tree.PipelineTreeModel;
 import io.jenkins.x.client.tree.TreeItem;
 import io.jenkins.x.client.tree.TreeModelListenerAdapter;
+import io.jenkins.x.eclipse.plugin.Logger;
 import io.jenkins.x.eclipse.plugin.util.ActionUtils;
 
 /**
@@ -38,7 +39,6 @@ public class JenkinsView extends ViewPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "io.jenkins.x.eclipse.plugin.view.JenkinsView";
-	private static final Logger logger = Logger.getLogger(JenkinsView.class.getName());
 
 	@Inject IWorkbench workbench;
 	
@@ -46,15 +46,13 @@ public class JenkinsView extends ViewPart {
 	private BeAction startPipelineAction;
 	private BeAction reloadAction;
 
-	private PipelineTreeModel model = PipelineTreeModel.newInstance();
+	private PipelineTreeModel model;
 
 	@Override
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
 		
-		viewer.setContentProvider(new ViewContentProvider(this.model));
-		viewer.setInput(getViewSite());
-		viewer.setLabelProvider(new ViewLabelProvider());
+		initModel();
 		
 		// Create the help context id for the viewer's control
 		workbench.getHelpSystem().setHelp(viewer.getControl(), "jx-eclipse-plugin.viewer");
@@ -66,17 +64,36 @@ public class JenkinsView extends ViewPart {
 		IToolBarManager tbm= getViewSite().getActionBars().getToolBarManager();
 		configureToolBar(tbm);
 		
+		update();
+	}
+	
+	private void initModel() {
+		if(model != null) {
+			return;
+		}
+		
+		model = PipelineTreeModel.newInstance();
 		model.addListener(new TreeModelListenerAdapter() {
 
 			@Override
 			public void event(TreeItem item, String event) {
-				viewer.getTree().getDisplay().update();
-				viewer.getTree().update();
-				viewer.getTree().redraw();
+				update();
 				
-				logger.info("Tree reload " + item.getLabel());
+				Logger.info("Tree reload " + item.getLabel());
 			}
 		});
+		viewer.setContentProvider(new ViewContentProvider(this.model));
+		viewer.setLabelProvider(new ViewLabelProvider());
+		viewer.setInput(getViewSite());
+	}
+	
+	private void stopModel() throws IOException {
+		if(model == null) {
+			return;
+		}
+
+		model.getPipelineClient().close();
+		model = null;
 	}
 	
 	private void hookContextMenu() {
@@ -169,10 +186,13 @@ public class JenkinsView extends ViewPart {
 		
 		reloadAction = new BeAction() {
 			public void run() {
-				viewer.getTree().getParent().setRedraw(true);
-				viewer.getTree().getParent().update();
-				viewer.getTree().redraw();
-				viewer.refresh();
+				try {
+					stopModel();
+				} catch (IOException e) {
+					Logger.error("Jx Client stop error.", e);
+				}
+				
+				initModel();
 			}
 		};
 		reloadAction.setText("Reload");
@@ -182,5 +202,12 @@ public class JenkinsView extends ViewPart {
 	@Override
 	public void setFocus() {
 		viewer.getControl().setFocus();
+	}
+	
+	private void update() {
+		viewer.getTree().getParent().setRedraw(true);
+		viewer.getTree().getParent().update();
+		viewer.getTree().redraw();
+		viewer.refresh();
 	}
 }
