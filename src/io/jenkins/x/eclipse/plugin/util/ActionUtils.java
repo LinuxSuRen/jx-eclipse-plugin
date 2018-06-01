@@ -23,7 +23,7 @@ public abstract class ActionUtils {
 	 * @param target target action text
 	 */
 	public static void addOpenBrowseAction(IContributionManager manager, String url, String target) {
-		if(Strings.notEmpty(target)) {
+		if(Strings.notEmpty(url)) {
 			manager.add(new OpenBrowseAction(target, url));
 			manager.update(true);
 		}
