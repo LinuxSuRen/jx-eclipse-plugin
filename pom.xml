@@ -11,6 +11,8 @@
   <groupId>io.jenkins-x.client</groupId>
   <artifactId>jx-eclipse-plugin</artifactId>
   <version>1.0-SNAPSHOT</version>
+  
+  <packaging>eclipse-plugin</packaging>
   <name>jx-eclipse-plugin</name>
 
   <url>https://jenkins-x.io/</url>
@@ -54,7 +56,18 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+	<tycho.version>1.0.0</tycho.version>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<eclipse-repo.url>http://download.eclipse.org/releases/oxygen</eclipse-repo.url>
   </properties>
+  
+  <repositories>
+	  <repository>
+	    <id>eclipse-mars</id>
+	    <url>${eclipse-repo.url}</url>
+	    <layout>p2</layout>
+	</repository>
+  </repositories>
   
   <build>
   	<plugins>
@@ -74,6 +87,27 @@
 		        </execution>
 		    </executions>
 		</plugin>
+		<plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>tycho-surefire-plugin</artifactId>
+            <version>${tycho.version}</version>
+            <configuration>
+                <useUIHarness>true</useUIHarness>
+            </configuration>
+         </plugin>
+         <plugin>
+	        <groupId>org.eclipse.tycho</groupId>
+	            <artifactId>tycho-packaging-plugin</artifactId>
+	             <executions>
+	              <execution>
+	                <phase>package</phase>
+	                <id>package-feature</id>
+	                    <configuration>
+	                        <finalName>${project.artifactId}_${unqualifiedVersion}.${buildQualifier}</finalName>
+	                    </configuration>
+	            </execution>
+	        </executions>
+	    </plugin>
   	</plugins>
   </build>
 
