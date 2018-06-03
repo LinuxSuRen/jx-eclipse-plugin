@@ -3,10 +3,7 @@
  */
 package io.jenkins.x.eclipse.plugin.view;
 
-import java.awt.Desktop;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import io.jenkins.x.eclipse.plugin.util.BrowserUtils;
 
 /**
  * @author suren
@@ -24,15 +21,7 @@ public class OpenBrowseAction extends BeAction {
 			return;
 		}
 		
-		try {
-			URI uri = new URI(this.getUrl());
-			
-			Desktop.getDesktop().browse(uri);
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		BrowserUtils.open(getUrl());
 	}
 
 	public void setTarget(String target) {
