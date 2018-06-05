@@ -1,127 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
     <version>9</version>
   </parent>
 
-  <groupId>io.jenkins-x.client</groupId>
-  <artifactId>jx-eclipse-plugin</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  
-  <name>jx-eclipse-plugin</name>
-  <packaging>eclipse-plugin</packaging>
+    <groupId>io.jenkins-x.client</groupId>
+    <artifactId>jx-eclipse-plugin</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-  <url>https://jenkins-x.io/</url>
-  <inceptionYear>2018</inceptionYear>
-
-  <organization>
-    <name>Jenkins X Community</name>
-    <url>https://jenkins-x.io/</url>
-  </organization>
-
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
-  <prerequisites>
-    <maven>3.2.1</maven>
-  </prerequisites>
-
-  <!-- including A developer as it's required by the maven poms going into central -->
-  <developers>
-    <developer>
-      <id>geeks</id>
-      <name>Jenkins X Development Team</name>
-      <email>jenksindev@googlegroups.com</email>
-      <organization>jenkins</organization>
-      <organizationUrl>http://jenkins.io/</organizationUrl>
-    </developer>
-  </developers>
-
-  <scm>
-    <connection>scm:git:git@github.com:jenkins-x/jx-eclipse-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkins-x/jx-eclipse-plugin.git</developerConnection>
-    <url>https://github.com/jenkins-x/jx-eclipse-plugin</url>
-    <tag>jx-java-client-1.0.1</tag>
-  </scm>
-
-  <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-	<tycho.version>1.0.0</tycho.version>
-	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	<eclipse-repo.url>http://download.eclipse.org/releases/oxygen</eclipse-repo.url>
-  </properties>
-  
-  <repositories>
-	  <repository>
-	    <id>eclipse-mars</id>
-	    <url>${eclipse-repo.url}</url>
-	    <layout>p2</layout>
-	</repository>
-  </repositories>
-  
-  <build>
-  	<plugins>
-		<plugin>
-		    <groupId>org.apache.maven.plugins</groupId>
-		    <artifactId>maven-dependency-plugin</artifactId>
-		    <executions>
-		        <execution>
-		            <id>copy</id>
-		            <phase>package</phase>
-		            <goals>
-		                <goal>copy-dependencies</goal>
-		            </goals>
-		            <configuration>
-		                <outputDirectory>${project.build.directory}/lib</outputDirectory>
-		            </configuration>
-		        </execution>
-		    </executions>
-		</plugin>
-		<plugin>
-			<groupId>org.eclipse.tycho</groupId>
-			<artifactId>tycho-maven-plugin</artifactId>
-			<version>${tycho.version}</version>
-			<extensions>true</extensions>
-		</plugin>
-		<plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>tycho-surefire-plugin</artifactId>
-            <version>${tycho.version}</version>
-            <configuration>
-                <useUIHarness>true</useUIHarness>
-            </configuration>
-         </plugin>
-         <plugin>
-	        <groupId>org.eclipse.tycho</groupId>
-	            <artifactId>tycho-packaging-plugin</artifactId>
-	             <executions>
-	              <execution>
-	                <phase>package</phase>
-	                <id>package-feature</id>
-	                    <configuration>
-	                        <finalName>${project.artifactId}_${unqualifiedVersion}.${buildQualifier}</finalName>
-	                    </configuration>
-	            </execution>
-	        </executions>
-	    </plugin>
-  	</plugins>
-  </build>
-
-  <dependencies>
-    <dependency>
-	  <groupId>io.jenkins-x.client</groupId>
-	  <artifactId>jx-java-client</artifactId>
-	  <version>1.0-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
+    <modules>
+        <module>jx.feature</module>
+        <module>jx.plugin</module>
+        <module>jx.update.sites</module>
+    </modules>
 </project>

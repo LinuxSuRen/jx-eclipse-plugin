@@ -1,0 +1,12 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    
+    <artifactId>jx.update.sites</artifactId>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>io.jenkins-x.client</groupId>
+        <artifactId>jx-eclipse-plugin</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+</project>
