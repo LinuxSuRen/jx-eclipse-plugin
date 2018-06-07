@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JX-eclipse-plugin
-Bundle-SymbolicName: jx-eclipse-plugin;singleton:=true
+Bundle-SymbolicName: jx.plugin;singleton:=true
 Bundle-Version: 0.0.1.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui.navigator,
