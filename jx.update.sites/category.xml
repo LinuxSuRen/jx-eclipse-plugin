@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Jenkins-X" url="https://jenkins-x.io/">
+      https://jenkins-x.io/
+   </description>
+   <feature url="features/jx.features_0.0.1.qualifier.jar" id="jx.features" version="0.0.1.qualifier">
+      <category name="Jenkins X"/>
+   </feature>
+   <category-def name="Jenkins X" label="Jenkins X">
+      <description>
+         Jenkins X is a CI/CD solution for modern cloud applications on Kubernetes and is being proposed as a sub-project via JEP-400.
+      </description>
+   </category-def>
+</site>
