@@ -7,3 +7,9 @@ lib
 .project
 .settings
 .classpath
+
+# others
+.DS_Store
+
+# idea
+.idea
